@@ -145,7 +145,18 @@ cost_t CostMatrix::get_vertex_cost(std::size_t row, std::size_t col) const {
  * @return The coordinates of the next vertex.
  */
 NewVertex StageState::choose_new_vertex() {
-    throw;  // TODO: Implement it!
+    NewVertex max = NewVertex();
+    for(int i = 0; i < matrix_.size(); i++){
+        for(int j=0; j< matrix_.size(); j++){
+            int current_cost = matrix_.get_vertex_cost(i, j);
+            if (current_cost > 0) continue;
+            if(max.cost < current_cost){
+                max.cost = current_cost;
+                max.coordinates = vertex_t(i, j);
+            }
+        }
+    }
+    return max;
 }
 
 /**
@@ -153,7 +164,15 @@ NewVertex StageState::choose_new_vertex() {
  * @param new_vertex
  */
 void StageState::update_cost_matrix(vertex_t new_vertex) {
-    throw;  // TODO: Implement it!
+    for(int i = 0; i < matrix_.size(); i++){
+        matrix_[i][new_vertex.col] = INF;
+        matrix_[new_vertex.row][i] = INF;
+    }
+    if(unsorted_path_.size() != matrix_.size()){
+        std::vector<std::pair<int, bool>> vertex_from = {};
+        std::vector<std::pair<int, bool>> vertex_to = {};
+        //add vertex ============================================================================================================================ continue here
+    }
 }
 
 /**
@@ -161,7 +180,9 @@ void StageState::update_cost_matrix(vertex_t new_vertex) {
  * @return The sum of reduced values.
  */
 cost_t StageState::reduce_cost_matrix() {
-    throw;  // TODO: Implement it!
+    cost_t row_cost = matrix_.reduce_rows();
+    cost_t col_cost = matrix_.reduce_cols();
+    return row_cost + col_cost;
 }
 
 /**
