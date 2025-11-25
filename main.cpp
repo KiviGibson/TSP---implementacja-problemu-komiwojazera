@@ -15,16 +15,6 @@ int main() {
      * 32 : 1 4 3 2 0
      */
 
-    CostMatrix maciez = CostMatrix(cm);
-    maciez.reduce_cols();
-    maciez.reduce_rows();
-    for(auto& row: maciez.get_matrix()){
-        for(auto& element: row)
-            std::cout << ((element == INF)? -1 : element) << ", ";
-        std::cout << std::endl;
-    }
-    std::cout << maciez.get_vertex_cost(0,2) << std::endl;
-
 
 //    cost_matrix_t cm {
 //            {INF, 12,   3,  45,   6},
@@ -54,7 +44,7 @@ int main() {
 
 
 
-    /*
+    
     tsp_solutions_t solutions = solve_tsp(cm);
 
 
@@ -65,6 +55,6 @@ int main() {
         }
         std::cout << "\n";
     }
-*/
+
     return EXIT_SUCCESS;
 }

@@ -148,8 +148,8 @@ NewVertex StageState::choose_new_vertex() {
     NewVertex max = NewVertex();
     for(int i = 0; i < matrix_.size(); i++){
         for(int j=0; j< matrix_.size(); j++){
+            if (matrix_[i][j] != 0) continue;
             int current_cost = matrix_.get_vertex_cost(i, j);
-            if (current_cost > 0) continue;
             if(max.cost < current_cost){
                 max.cost = current_cost;
                 max.coordinates = vertex_t(i, j);
@@ -160,20 +160,53 @@ NewVertex StageState::choose_new_vertex() {
 }
 
 /**
- * Update the cost matrix with the new vertex.
+ * Update the cost matrix with the new vertex. #Todo : Napraw
  * @param new_vertex
  */
 void StageState::update_cost_matrix(vertex_t new_vertex) {
-    for(int i = 0; i < matrix_.size(); i++){
-        matrix_[i][new_vertex.col] = INF;
+    for (int i = 0; i < matrix_.size(); i++) {
         matrix_[new_vertex.row][i] = INF;
+        matrix_[i][new_vertex.col] = INF;
     }
-    if(unsorted_path_.size() != matrix_.size()){
-        std::vector<std::pair<int, bool>> vertex_from = {};
-        std::vector<std::pair<int, bool>> vertex_to = {};
-        //add vertex ============================================================================================================================ continue here
+    matrix_[new_vertex.col][new_vertex.row] = INF;
+    if (unsorted_path_.size() == matrix_.size()) return;
+    std::vector<std::pair<int, bool>> vertexes_from = {};
+    std::vector<std::pair<int, bool>> vertexes_to = {};
+    for (auto &edge: unsorted_path_) {
+        vertexes_from.push_back(std::make_pair(edge.row, false));
+        vertexes_to.push_back(std::make_pair(edge.col, false));
     }
+    for (int i = 0; i < vertexes_from.size(); i++) {
+        for (int j = 0; j < vertexes_from.size(); j++) {
+            if (vertexes_from[i] == vertexes_from[j] && i != j) {
+                vertexes_from[i].second = true;
+                vertexes_from[j].second = true;
+            }
+        }
+    }
+    int forbidden_from = INF;
+    for (auto &vertex: vertexes_from) {
+        if (!vertex.second) {
+            forbidden_from = vertex.first;
+        }
+    }
+    for (int i = 0; i < vertexes_to.size(); i++) {
+        for (int j = 0; j < vertexes_to.size(); j++) {
+            if (vertexes_to[i] == vertexes_to[j] && i != j) {
+                vertexes_to[i].second = true;
+                vertexes_to[j].second = true;
+            }
+        }
+    }
+    int forbidden_to = INF;
+    for (auto &vertex: vertexes_to) {
+        if (!vertex.second) {
+            forbidden_to = vertex.first;
+        }
+    }
+    matrix_[forbidden_from][forbidden_to] = INF;
 }
+
 
 /**
  * Reduce the cost matrix.
@@ -271,7 +304,7 @@ tsp_solutions_t solve_tsp(const cost_matrix_t& cm) {
             }
 
             // 1. Reduce the matrix in rows and columns.
-            cost_t new_cost = 0; // @TODO (KROK 1)
+            cost_t new_cost = left_branch.reduce_cost_matrix(); // @TODO (KROK 1)
 
             // 2. Update the lower bound and check the break condition.
             left_branch.update_lower_bound(new_cost);
@@ -280,12 +313,11 @@ tsp_solutions_t solve_tsp(const cost_matrix_t& cm) {
             }
 
             // 3. Get new vertex and the cost of not choosing it.
-            NewVertex new_vertex = NewVertex(); // @TODO (KROK 2)
-
+            NewVertex new_vertex = left_branch.choose_new_vertex(); // @TODO (KROK 2)
             // 4. @TODO Update the path - use append_to_path method.
-
+            left_branch.append_to_path(new_vertex.coordinates);
             // 5. @TODO (KROK 3) Update the cost matrix of the left branch.
-
+            left_branch.update_cost_matrix(new_vertex.coordinates);
             // 6. Update the right branch and push it to the LIFO.
             cost_t new_lower_bound = left_branch.get_lower_bound() + new_vertex.cost;
             tree_lifo.push(create_right_branch_matrix(cm, new_vertex.coordinates,
